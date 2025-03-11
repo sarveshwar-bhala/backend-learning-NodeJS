@@ -5,7 +5,6 @@ const users = JSON.parse(
 );
 
 exports.getAllUsers = (req, res) => {
-  console.log(req.requestTime);
   res.status(200).json({
     status: "success",
     reqTime: req.requestTime,

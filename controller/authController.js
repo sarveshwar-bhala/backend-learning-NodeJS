@@ -16,11 +16,11 @@ const createSendToken = (user, statusCode, res) => {
   res.cookie('jwt', token, {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
-      ),
+    ),
     //   secure: true,
-      httpOnly:true
+    httpOnly: true,
   });
-    user.password=undefined
+  user.password = undefined;
   res.status(statusCode).json({
     status: 'success',
     token,
@@ -113,7 +113,35 @@ exports.protect = catchAsync(async (req, res, next) => {
   console.log(req.user);
   next();
 });
+exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      // 1) verify token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET,
+      );
 
+      // 2) Check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next();
+      }
+
+      // 3) Check if user changed password after the token was issued
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      // THERE IS A LOGGED IN USER
+      res.locals.user = currentUser;
+      return next();
+    } catch (err) {
+      return next();
+    }
+  }
+  next();
+};
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     console.log(req.user.role);

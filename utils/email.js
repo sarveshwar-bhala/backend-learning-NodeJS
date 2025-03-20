@@ -1,8 +1,19 @@
+const { htmlToText } = require('html-to-text');
 const nodemailer = require('nodemailer');
+const pug = require("pug")
 
-const sendEmail = async (options) => {
-  try {
-    const transporter = nodemailer.createTransport({
+module.exports = class Email {
+  constructor(user, url) {
+    (this.to = user.email),
+      (this.firstName = user.name.split(' ')[0]),
+      (this.url = url),
+      (this.from = `Sarveshwar <sarveshwar@gmail.com>`);
+  }
+  newTransport() {
+    if (process.env._NODE_ENV === 'production') {
+      return 1;
+    }
+    return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       auth: {
@@ -10,29 +21,51 @@ const sendEmail = async (options) => {
         pass: process.env.EMAIL_PASSWORD,
       },
     });
-    transporter.verify((error, success) => {
-      if (error) {
-        console.error('❌ SMTP Connection Failed:', error);
-      } else {
-        console.log('✅ SMTP Server Ready!');
-      }
-    });
+  }
+  async send(template, subject) {
+    // send the actual email
+    // 1. Render html for email based on pug template
+    const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
+      firstName: this.firstName,
+      url: this.url,
+      subject
+    })
 
-    console.log('✅ Transporter created, sending email...');
-
+    // 2. Define email options
     const mailOptions = {
-      from: 'Sarveshwar <sarveshwar@gmail.com>',
-      to: options.email,
-      subject: options.subject,
-      text: options.message, // ✅ Fixed `test` → `text`
+      from: this.from,
+      to: this.to,
+      subject: subject,
+      html,
+      text: htmlToText.fromString(html),
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    // 3. Create a transport and send Email
+    await this.newTransport().sendMail(mailOptions);
+    
+  }
 
-    return info;
-  } catch (error) {
-    throw new Error('Email sending failed');
+  async sendWelcome() {
+    await this.send('welcome', 'Welcome to the family');
   }
 };
 
-module.exports = sendEmail;
+// const sendEmail = async (options) => {
+//   try {
+//     // transporter.verify((error, success) => {
+//     //   if (error) {
+//     //     console.error('❌ SMTP Connection Failed:', error);
+//     //   } else {
+//     //     console.log('✅ SMTP Server Ready!');
+//     //   }
+//     // });
+
+//     const info = await transporter.sendMail(mailOptions);
+
+//     return info;
+//   } catch (error) {
+//     throw new Error('Email sending failed');
+//   }
+// };
+
+// // module.exports = sendEmail;

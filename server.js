@@ -10,8 +10,6 @@ dotenv.config({
   path: './config.env',
 });
 const app = require('./app');
-const { name } = require('eslint-config-prettier/flat');
-const { rules } = require('eslint-config-airbnb');
 
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',

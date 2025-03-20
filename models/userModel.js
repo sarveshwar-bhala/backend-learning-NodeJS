@@ -7,7 +7,7 @@ const userSchema = mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Name is mandatory'],
-    validate: [validator.isAlpha, 'Name must only contains characters'],
+    // validate: [validator.isAlpha, 'Name must only contains characters'],
   },
   email: {
     type: String,
@@ -18,6 +18,7 @@ const userSchema = mongoose.Schema({
   },
   photo: {
     type: String,
+    default: 'default.jpg',
     // required: [true, 'Image is mandatory'],
   },
   role: {
@@ -46,10 +47,10 @@ const userSchema = mongoose.Schema({
   passwordResetToken: String,
   passwordResetExpires: String,
   active: {
-    type:Boolean,
+    type: Boolean,
     default: true,
-    select:false
-  }
+    select: false,
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -72,9 +73,9 @@ userSchema.pre('save', function (next) {
 });
 
 userSchema.pre(/^find/, function (next) {
-  this.find({ active: {$ne:false} })
-  next()
-})
+  this.find({ active: { $ne: false } });
+  next();
+});
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,

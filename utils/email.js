@@ -37,7 +37,7 @@ module.exports = class Email {
       to: this.to,
       subject: subject,
       html,
-      text: htmlToText.fromString(html),
+      text: htmlToText(html),
     };
 
     // 3. Create a transport and send Email
@@ -47,6 +47,9 @@ module.exports = class Email {
 
   async sendWelcome() {
     await this.send('welcome', 'Welcome to the family');
+  }
+  async sendPasswordReset() {
+    await this.send('passwordReset', 'Your password reset token (valid for only 10 minutes)');
   }
 };
 
